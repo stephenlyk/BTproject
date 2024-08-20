@@ -8,7 +8,7 @@ from Check import run_single_strategy
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_eth1h/"
-STRATEGY_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/19Aug2024/Book5.csv"
+STRATEGY_PATH = "/Users/stephenlyk/Desktop/Gnproject/src/eth_factor_test_final.csv"
 
 
 def process_strategy(row):

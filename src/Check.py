@@ -18,6 +18,7 @@ from config import GLASSNODE_API_KEY
 # Standard User Input Section
 COMMISSION = 0.0007  # 7 basis points, change as needed
 WINDOW_SIZE_PERCENT = 0.1  # 10%
+NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'ETH'
@@ -32,12 +33,12 @@ CONDITION = "lower"
 # Strategy-specific threshold parameters
 STRATEGY_PARAMS = {
     'ZScore': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)},
-    'Robust': {'threshold_list': np.round(np.linspace(0, 2, 20), 3)},
+    'MovingAverage': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
+    'RSI': {'threshold_list': np.round(np.linspace(0.2, 0.8, 32), 3)},
     'ROC': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
     'MinMax': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
-    'MovingAverage': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
-    'Percentile': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
-    'RSI': {'threshold_list': np.round(np.linspace(10, 90, 20), 3)}
+    'Robust': {'threshold_list': np.round(np.linspace(0, 2, 20), 3)},
+    'Percentile': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)}
 }
 
 class StrategyChecker:
@@ -89,7 +90,8 @@ class StrategyChecker:
     def calculate_window_sizes(self):
         data_length = len(self.train_df)
         max_window = int(data_length * WINDOW_SIZE_PERCENT)
-        return np.linspace(2, max_window, 40, dtype=int)
+        min_window = 2
+        return np.linspace(min_window, max_window, NUM_WINDOW_SIZES, dtype=int)
 
     def optimize_strategy(self):
         optimization = Optimization(self.strategy_name, self.train_df, self.window_size_list, self.threshold_list,
@@ -107,7 +109,7 @@ class StrategyChecker:
         df['Daily_PnL'] = df['Profit']
         df['BTC_Returns'] = df['Price'].pct_change()
         df['Long_Short'] = self.long_short
-        df['Condition'] = self.condition  # Add this line
+        df['Condition'] = self.condition
 
         columns = ['Date', 'Value', 'Price', 'Position', 'Long_Short', 'Condition', 'Daily_PnL', 'Cumulative_Profit',
                    'BTC_Returns']
@@ -126,19 +128,6 @@ class StrategyChecker:
 
         if score_column and score_column in df.columns:
             columns.insert(3, score_column)
-
-        return df[columns]
-
-        # Get the appropriate score column name for the current strategy
-        score_column = strategy_score_columns.get(self.strategy_name)
-
-        # Add strategy-specific column if it exists in the DataFrame
-        if score_column and score_column in df.columns:
-            columns.insert(3, score_column)
-
-        # Print columns for debugging
-        print(f"Available columns: {df.columns}")
-        print(f"Selected columns: {columns}")
 
         return df[columns]
 
