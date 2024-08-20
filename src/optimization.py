@@ -51,8 +51,7 @@ class Optimization():
         self.results_data_df = pd.DataFrame(results_data)
         self.results_data_df = self.results_data_df.sort_values(by='Sharpe', ascending=False)
 
-
-    def plot_heat_map(self, save_path=None, test_strategy=None):
+    def plot_heat_map(self, save_path=None, test_strategy=None, best_window=None, best_threshold=None):
         result_data_pivot = self.results_data_df.pivot(index='Window', columns='Threshold', values='Sharpe')
 
         # Create a figure with two subplots
@@ -64,10 +63,13 @@ class Optimization():
         ax1.set_xlabel('Threshold')
         ax1.set_ylabel('Window Size')
 
-        # Get the best strategy
-        best_strategy = self.get_best()
+        # Get the best strategy using the passed parameters
+        best_strategy = self.results_data_df[(self.results_data_df['Window'] == best_window) &
+                                             (self.results_data_df['Threshold'] == best_threshold)][
+            'Strategy Object'].iloc[0]
 
-        # Plot equity curve
+
+        # Plot equity curve using the correct best strategy
         ax2.plot(best_strategy.result_df['Date'], best_strategy.result_df['Cumulative_Profit'], label='Train Strategy',
                  color='blue')
         ax2.plot(best_strategy.result_df['Date'], best_strategy.result_df['Cumulative_Bnh'], label='Train Buy and Hold',
@@ -112,6 +114,5 @@ class Optimization():
         print(self.results_data_df.head())
 
     def get_best(self):
-
         return self.results_data_df.iloc[0]['Strategy Object']
 

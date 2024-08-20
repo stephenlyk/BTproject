@@ -151,7 +151,7 @@ class StrategyChecker:
         # Calculate the number of trades by counting position changes
         return (df['Position'].diff() != 0).sum()
 
-    def plot_optimization_heatmap(self, optimization, test_strategy):
+    def plot_optimization_heatmap(self, optimization, test_strategy, best_window, best_threshold):
         # Create the directory if it doesn't exist
         os.makedirs(self.metric_name, exist_ok=True)
 
@@ -165,7 +165,8 @@ class StrategyChecker:
                 ['Window', 'Threshold']).first().reset_index()
 
             # Use the plot_heat_map method from the Optimization class
-            optimization.plot_heat_map(save_path=heatmap_filename, test_strategy=test_strategy)
+            optimization.plot_heat_map(save_path=heatmap_filename, test_strategy=test_strategy,
+                                       best_window=best_window, best_threshold=best_threshold)
 
             print(f"Heatmap and equity curve saved as {heatmap_filename}")
         except Exception as e:
@@ -184,20 +185,31 @@ class StrategyChecker:
 
     def run(self):
         try:
+            print(f"Running strategy: {self.strategy_name}")
+            print(f"File being processed: {self.file_path}")
+
             logging.info(f"Running strategy: {self.strategy_name}, {self.long_short}, {self.condition}")
 
             optimization, best_window, best_threshold = self.optimize_strategy()
 
+            # Add this debug print before creating the strategy objects
             strategy_class = globals()[self.strategy_name]
+            # print(f"Creating strategy object of type: {strategy_class}")
 
             train_strategy = strategy_class(self.train_df, best_window, best_threshold, target='Value', price='Price',
                                             long_short=self.long_short, condition=self.condition)
             test_strategy = strategy_class(self.test_df, best_window, best_threshold, target='Value', price='Price',
                                            long_short=self.long_short, condition=self.condition)
 
+            # Add the debug print statements here
+            # print(f"Best strategy window: {best_window}, threshold: {best_threshold}")
+
+            train_sharpe, train_mdd, train_calmar = self.calculate_metrics(train_strategy)
+            test_sharpe, test_mdd, test_calmar = self.calculate_metrics(test_strategy)
+
             # Plot and save the heatmap and equity curves
             try:
-                self.plot_optimization_heatmap(optimization, test_strategy)
+                self.plot_optimization_heatmap(optimization, test_strategy, best_window, best_threshold)
                 logging.info(
                     f"Successfully generated heatmap for {self.strategy_name}, {self.long_short}, {self.condition}")
             except Exception as e:
