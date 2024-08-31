@@ -1,50 +1,111 @@
-# fetch_data.py
-import os
-from datetime import datetime
-from data_handler import DataHandler
-import logging
-from tqdm import tqdm
+# data_handler.py
 import pandas as pd
+import requests
+from datetime import datetime
+import logging
+import json
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Constants
-GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
-ASSET = 'SOL'
-INTERVAL = '1h'
-FOLDER_NAME = 'glassnode_data_SOL1h'  # User can modify this line directly in the code
 
-def fetch_and_save_data(start_date, end_date):
-    data_handler = DataHandler(GLASSNODE_API_KEY, ASSET, INTERVAL, FOLDER_NAME)  # Changed to FOLDER_NAME
+class DataHandler:
+    def __init__(self, api_key, asset, interval, FOLDER_NAME):
+        self.api_key = api_key
+        self.asset = asset
+        self.interval = interval
+        self.successful_metrics = []
+        self.failed_metrics = []
+        self.data_folder = FOLDER_NAME
+        os.makedirs(self.data_folder, exist_ok=True)
+        self.miner_list = ["aggregated", "other", "1THash&58COIN", "AntPool", "ArkPool", "BinancePool", "BitFury",
+                           "BitMinter", "Bixin", "BTC.com", "BTC.TOP", "DPool", "F2Pool", "FoundryUSAPool", "Genesis",
+                           "HuobiPool", "KuCoinPool", "Lubian.com", "LuxorTech", "MaraPool", "NovaBlock", "OKExPool",
+                           "Patoshi", "PegaPool", "Poolin", "SBICrypto", "SigmaPool", "SlushPool", "SpiderPool",
+                           "TerraPool", "UKRPool", "Ultimus", "ViaBTC"]
 
-    # Fetch all available metrics
-    all_metrics = data_handler.fetch_glassnode_metrics()
-    logging.info(f"Total metrics available: {len(all_metrics)}")
+    def fetch_glassnode_metrics(self):
+        url = "https://api.glassnode.com/v2/metrics/endpoints"
+        params = {'api_key': self.api_key}
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            metrics = [item['path'] for item in data if isinstance(item, dict) and 'path' in item]
+            return sorted(set(metrics))
+        else:
+            logging.error(f"Error fetching metrics list: {response.status_code}")
+            logging.error(f"Response content: {response.text}")
+            return []
 
-    for metric in tqdm(all_metrics, desc="Fetching and saving data"):
-        data = data_handler.prepare_specific_data(start_date, end_date, metric)
+    def fetch_glassnode_data(self, metric, start_timestamp, end_timestamp, miner=None):
+        if metric.startswith('/v1/metrics/'):
+            metric = metric[len('/v1/metrics/'):]
 
-        if data is None:
-            logging.warning(f"No data available for metric: {metric}.")
-            continue
+        url = f"https://api.glassnode.com/v1/metrics/{metric}"
 
-        if isinstance(data, pd.DataFrame):
-            # Non-miner specific data
-            csv_filename = os.path.join(data_handler.data_folder, f"{metric.replace('/', '_')}.csv")
-            data.to_csv(csv_filename, index=False)
-            logging.info(f"Saved data for {metric} to {csv_filename}")
-        elif isinstance(data, dict):
-            # Miner-specific data
-            for miner, df in data.items():
-                if df is None or df.empty:
-                    logging.warning(f"No data available for metric: {metric}, miner: {miner}.")
-                    continue
+        params = {
+            'a': self.asset,
+            's': start_timestamp,
+            'u': end_timestamp,
+            'i': self.interval,
+            'api_key': self.api_key
+        }
 
-                csv_filename = os.path.join(data_handler.data_folder, f"{metric.replace('/', '_')}_{miner}.csv")
-                df.to_csv(csv_filename, index=False)
-                logging.info(f"Saved data for {metric} (Miner: {miner}) to {csv_filename}")
+        if miner:
+            params['miner'] = miner
 
-if __name__ == "__main__":
-    start_date = datetime(2021, 1, 1).date()
-    end_date = datetime.now().date()
-    fetch_and_save_data(start_date, end_date)
+        try:
+            response = requests.get(url, params=params)
+            logging.info(f"Request URL: {response.url}")
+            logging.info(f"Response status: {response.status_code}")
+            logging.info(f"Response text: {response.text[:100]}...")  # Log first 100 characters
+
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logging.error(f"Error fetching data for {metric} (Miner: {miner}): {response.status_code}")
+                logging.error(f"Response content: {response.text}")
+                return None
+        except Exception as e:
+            logging.error(f"Exception occurred while fetching data for {metric} (Miner: {miner}): {str(e)}")
+            return None
+
+    def prepare_specific_data(self, start_date, end_date, metric):
+        start_timestamp = int(datetime.combine(start_date, datetime.min.time()).timestamp())
+        end_timestamp = int(datetime.combine(end_date, datetime.min.time()).timestamp())
+
+        # First, try fetching without miner parameter
+        data = self.fetch_glassnode_data(metric, start_timestamp, end_timestamp)
+
+        if data is not None:
+            df = pd.DataFrame(data)
+            if 't' in df.columns and 'v' in df.columns:
+                df['Date'] = pd.to_datetime(df['t'], unit='s')
+                df = df.rename(columns={'v': metric})
+                df = df[['Date', metric]].sort_values('Date')
+                return df
+            else:
+                logging.warning(f"Unexpected data format for metric {metric}. Columns: {df.columns}")
+                return None
+
+        # If data is None, check if it's due to missing miner parameter
+        error_response = self.fetch_glassnode_data(metric, start_timestamp, end_timestamp, "aggregated")
+        if error_response is None or "missing miner param" not in str(error_response).lower():
+            return None
+
+        # If miner parameter is required, fetch for each miner
+        miner_data = {}
+        for miner in self.miner_list:
+            data = self.fetch_glassnode_data(metric, start_timestamp, end_timestamp, miner)
+            if data:
+                df = pd.DataFrame(data)
+                if 't' in df.columns and 'v' in df.columns:
+                    df['Date'] = pd.to_datetime(df['t'], unit='s')
+                    df = df.rename(columns={'v': metric})
+                    df = df[['Date', metric]].sort_values('Date')
+                    miner_data[miner] = df
+                else:
+                    logging.warning(f"Unexpected data format for metric {metric}, miner {miner}. Columns: {df.columns}")
+
+        return miner_data if miner_data else None
