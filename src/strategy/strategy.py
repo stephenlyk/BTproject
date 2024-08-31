@@ -58,16 +58,21 @@ class Strategy:
             diff = df.index.to_series().diff()
         else:
             diff = df['Date'].diff()
+
         most_common_interval = diff.mode()[0]
         multiplier = 0
+
         if most_common_interval >= pd.Timedelta(days=1):
             multiplier = 365
         elif most_common_interval >= pd.Timedelta(hours=1):
             multiplier = 365 * 24
+        elif most_common_interval >= pd.Timedelta(minutes=10):
+            multiplier = 365 * 24 * 6
         elif most_common_interval >= pd.Timedelta(minutes=1):
             multiplier = 365 * 24 * 60
         elif most_common_interval >= pd.Timedelta(seconds=1):
             multiplier = 365 * 24 * 60 * 60
+
         return multiplier
 
     def _add_position(self, df, signal, signal_type, threshold, long_short, condition):

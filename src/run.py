@@ -22,7 +22,6 @@ from config import GLASSNODE_API_KEY
 warnings.filterwarnings('ignore', category=pd.errors.SettingWithCopyWarning)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
@@ -30,12 +29,12 @@ pd.set_option('display.width', 1000)
 # User Input Section
 COMMISSION = 0.0007
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
-ASSET = 'ETH'
+ASSET = 'BTC'
 INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'glassnode_data_eth1hv')
+FACTOR_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'combined_factor')
 
 strategy_classes = {
     'MovingAverage': MovingAverage,

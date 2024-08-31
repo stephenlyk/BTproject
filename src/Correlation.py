@@ -15,11 +15,25 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_"
+BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_btc10m"
+shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/BTC10m/31Aug2024/all_strategies_results.csv"
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '10m'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key
 
+# Function to determine multiplier based on INTERVAL
+def get_multiplier(interval):
+    if interval == '10m':
+        return 365 * 24 * 6  # 6 ten-minute intervals per hour
+    elif interval == '1h':
+        return 365 * 24
+    elif interval == '1d':
+        return 365
+    else:
+        raise ValueError(f"Unsupported interval: {interval}")
+
+# Get multiplier based on INTERVAL
+MULTIPLIER = get_multiplier(INTERVAL)
 
 def fetch_glassnode_data():
     url = f"https://api.glassnode.com/v1/metrics/market/price_usd_close"
@@ -106,7 +120,7 @@ def process_metric(row, btc_price_df):
         return None
 
 # Read the Shortlist CSV
-shortlist_df = pd.read_csv('/Users/stephenlyk/Desktop/Strategy Bank/11Aug2024/all_strategies_results.csv')
+shortlist_df = pd.read_csv(shortlist_path)
 
 # Fetch BTC price data
 btc_price_df = fetch_glassnode_data()
@@ -117,7 +131,7 @@ results = Parallel(n_jobs=-1)(delayed(process_metric)(row, btc_price_df) for _, 
 # Combine all results into a single dataframe
 all_profits_df = pd.concat(results, axis=1)
 
-# Calculate equally weighted combined strategy
+# Calculate equally weighted combined strate gy
 all_profits_df['Combined_Profit'] = all_profits_df.mean(axis=1)
 
 # Calculate cumulative profit arithmetically for the combined strategy
@@ -128,14 +142,14 @@ all_profits_df['BnH_Returns'] = btc_price_df['Price'].pct_change()
 all_profits_df['BnH_Cumulative'] = all_profits_df['BnH_Returns'].cumsum()
 
 # Calculate performance metrics
-annual_return = all_profits_df['Combined_Profit'].mean() * 365 * 24 * 100  # Convert to percentage
-sharpe_ratio = all_profits_df['Combined_Profit'].mean() / all_profits_df['Combined_Profit'].std() * np.sqrt(365 * 24)
+annual_return = all_profits_df['Combined_Profit'].mean() * MULTIPLIER * 100  # Convert to percentage
+sharpe_ratio = all_profits_df['Combined_Profit'].mean() / all_profits_df['Combined_Profit'].std() * np.sqrt(MULTIPLIER)
 max_drawdown = (all_profits_df['Cumulative_Profit'] - all_profits_df['Cumulative_Profit'].cummax()).min() * 100
 calmar_ratio = annual_return / abs(max_drawdown)
 
 # Calculate BnH metrics
-bnh_annual_return = all_profits_df['BnH_Returns'].mean() * 365 * 24 * 100
-bnh_sharpe_ratio = all_profits_df['BnH_Returns'].mean() / all_profits_df['BnH_Returns'].std() * np.sqrt(365 * 24)
+bnh_annual_return = all_profits_df['BnH_Returns'].mean() * MULTIPLIER * 100
+bnh_sharpe_ratio = all_profits_df['BnH_Returns'].mean() / all_profits_df['BnH_Returns'].std() * np.sqrt(MULTIPLIER)
 bnh_max_drawdown = (all_profits_df['BnH_Cumulative'] - all_profits_df['BnH_Cumulative'].cummax()).min() * 100
 bnh_calmar_ratio = bnh_annual_return / abs(bnh_max_drawdown)
 
