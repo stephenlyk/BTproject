@@ -34,7 +34,7 @@ INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'combined_factor')
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_manual_BTCcheck'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,

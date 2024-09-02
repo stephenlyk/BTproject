@@ -1,6 +1,6 @@
 # fetch_data_manual.py
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import pandas as pd
 import requests
@@ -10,13 +10,32 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Constants
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
-ASSET = 'SOL'
+ASSET = 'BTC'
 INTERVAL = '1h'
 BASE_URL = 'https://api.glassnode.com/v1/metrics'
-FOLDER_NAME = 'glassnode_data_manual_sol1h'
+FOLDER_NAME = 'glassnode_data_manual_BTCcheck'
 
 # Define the endpoints and their respective metrics with additional parameters
 ENDPOINTS = {
+    'addresses': [
+        {'metric': 'min_1k_count', 'params': []},
+    ],
+    'blockchain': [
+        {'metric': 'utxo_profit_relative', 'params': []},
+    ],
+    'derivatives': [
+        {'metric': 'options_25delta_skew_3_months', 'params': []},
+        {'metric': 'options_atm_implied_volatility_1_month', 'params': []},
+        {'metric': 'futures_open_interest_perpetual_sum', 'params': ['e=deribit']},
+        {'metric': 'futures_open_interest_perpetual_sum', 'params': []},
+        {'metric': 'options_open_interest_sum', 'params': ['e=deribit']},
+    ],
+    'distribution': [
+        {'metric': 'balance_exchanges', 'params': ['c=NATIVE', 'e=binance']},
+    ],
+    'market': [
+        {'metric': 'marketcap_usd', 'params': []},
+    ],
     # 'addresses': [
     #     {'metric': 'accumulation_balance', 'params': ['c']},
     #     {'metric': 'supply_balance_less_0001', 'params': ['c']},
@@ -133,13 +152,13 @@ ENDPOINTS = {
     #     {'metric': 'fees_average_relative_pit', 'params': ['c']},
     #     {'metric': 'fees_median_relative_pit', 'params': ['c']},
     # ],
-    # #protocols not for btc
-    # 'protocols': [
-    #     {'metric': 'lido_deposits_volume_sum', 'params': ['a', 'c']},
-    #     {'metric': 'lido_volume_net', 'params': ['a', 'c']},
-    #     {'metric': 'lido_total_value_locked', 'params': ['a', 'c']},
-    #     {'metric': 'lido_withdrawn_volume_sum', 'params': ['a', 'c']},
-    # ],
+    # # #protocols not for btc
+    # # 'protocols': [
+    # #     {'metric': 'lido_deposits_volume_sum', 'params': ['a', 'c']},
+    # #     {'metric': 'lido_volume_net', 'params': ['a', 'c']},
+    # #     {'metric': 'lido_total_value_locked', 'params': ['a', 'c']},
+    # #     {'metric': 'lido_withdrawn_volume_sum', 'params': ['a', 'c']},
+    # # ],
     # 'supply': [
     #     {'metric': 'current_adjusted', 'params': ['c']},
     #     {'metric': 'burn_rate', 'params': ['c']},
@@ -178,25 +197,25 @@ ENDPOINTS = {
     #     {'metric': 'active_7y_10y', 'params': ['c']},
     #     {'metric': 'tips', 'params': ['c']},
     # ],
-    # 'transactions': [
-    #     {'metric': 'transfers_to_exchanges_count', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_to_exchanges_mean', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_to_exchanges_sum', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_exchanges_net', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_from_exchanges_mean', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_from_exchanges_sum', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_from_exchanges_count', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_within_exchanges_sum', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_between_exchanges_count', 'params': ['from_exchange', 'to_exchange']},
-    #     {'metric': 'transfers_volume_between_exchanges_sum', 'params': ['c', 'from_exchange', 'to_exchange']},
-    #     {'metric': 'transfers_to_miners_count', 'params': ['miner']},
-    #     {'metric': 'transfers_volume_to_miners_sum', 'params': ['c', 'miner']},
-    #     {'metric': 'transfers_volume_miners_net', 'params': ['c', 'miner']},
-    #     {'metric': 'transfers_volume_from_miners_sum', 'params': ['c', 'miner']},
-    #     {'metric': 'transfers_from_miners_count', 'params': ['miner']},
-    #     {'metric': 'transfers_volume_miners_to_exchanges', 'params': ['c', 'e']},
-    #     {'metric': 'transfers_volume_miners_to_exchanges_all', 'params': ['c', 'e']},
-    # ]
+    # # 'transactions': [
+    # #     {'metric': 'transfers_to_exchanges_count', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_to_exchanges_mean', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_to_exchanges_sum', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_exchanges_net', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_from_exchanges_mean', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_from_exchanges_sum', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_from_exchanges_count', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_within_exchanges_sum', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_between_exchanges_count', 'params': ['from_exchange', 'to_exchange']},
+    # #     {'metric': 'transfers_volume_between_exchanges_sum', 'params': ['c', 'from_exchange', 'to_exchange']},
+    # #     {'metric': 'transfers_to_miners_count', 'params': ['miner']},
+    # #     {'metric': 'transfers_volume_to_miners_sum', 'params': ['c', 'miner']},
+    # #     {'metric': 'transfers_volume_miners_net', 'params': ['c', 'miner']},
+    # #     {'metric': 'transfers_volume_from_miners_sum', 'params': ['c', 'miner']},
+    # #     {'metric': 'transfers_from_miners_count', 'params': ['miner']},
+    # #     {'metric': 'transfers_volume_miners_to_exchanges', 'params': ['c', 'e']},
+    # #     {'metric': 'transfers_volume_miners_to_exchanges_all', 'params': ['c', 'e']},
+    # # ]
 }
 
 
@@ -287,9 +306,10 @@ def fetch_miner_list(metric):
         logging.error(f"Error fetching miner list for {metric}: {e}")
         return None
 
+
 def fetch_and_save_data(start_date, end_date):
-    start_timestamp = int(datetime.combine(start_date, datetime.min.time()).timestamp())
-    end_timestamp = int(datetime.combine(end_date, datetime.min.time()).timestamp())
+    start_timestamp = int(datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc).timestamp())
+    end_timestamp = int(end_date.timestamp())
 
     data_folder = FOLDER_NAME
     os.makedirs(data_folder, exist_ok=True)
@@ -360,6 +380,6 @@ def fetch_and_save_data(start_date, end_date):
                                 logging.warning(f"No data available for {endpoint}/{metric} ({request_params})")
 
 if __name__ == "__main__":
-    start_date = datetime(2021, 1, 1).date()
-    end_date = datetime.now().date()
+    start_date = datetime(2020, 1, 1, tzinfo=timezone.utc).date()
+    end_date = datetime.now(timezone.utc)
     fetch_and_save_data(start_date, end_date)

@@ -1,6 +1,6 @@
 # fetch_data.py
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from data_handler import DataHandler
 import logging
 from tqdm import tqdm
@@ -10,9 +10,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Constants
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
-ASSET = 'SOL'
-INTERVAL = '1h'
-FOLDER_NAME = 'glassnode_data_SOL1h'  # User can modify this line directly in the code
+ASSET = 'BTC'
+INTERVAL = '10m'
+FOLDER_NAME = 'glassnode_data_btc10m'  # User can modify this line directly in the code
 
 def fetch_and_save_data(start_date, end_date):
     data_handler = DataHandler(GLASSNODE_API_KEY, ASSET, INTERVAL, FOLDER_NAME)  # Changed to FOLDER_NAME
@@ -45,6 +45,6 @@ def fetch_and_save_data(start_date, end_date):
                 logging.info(f"Saved data for {metric} (Miner: {miner}) to {csv_filename}")
 
 if __name__ == "__main__":
-    start_date = datetime(2021, 1, 1).date()
-    end_date = datetime.now().date()
+    start_date = datetime(2020, 1, 1, tzinfo=timezone.utc).date()
+    end_date = datetime.now(timezone.utc)
     fetch_and_save_data(start_date, end_date)

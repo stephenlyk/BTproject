@@ -22,7 +22,7 @@ NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '10m'
+INTERVAL = '1h'
 
 # File and Strategy
 FILE_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/17Aug2024/book3.csv"
@@ -172,6 +172,32 @@ class StrategyChecker:
         plt.savefig(filename)
         plt.close()
 
+    def save_detailed_results(self, train_df, test_df):
+        # Create the directory if it doesn't exist
+        os.makedirs(self.metric_name, exist_ok=True)
+
+        # Save train data
+        train_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_train_detailed.csv')
+        train_df.to_csv(train_filename, index=False)
+        print(f"Detailed train results saved as {train_filename}")
+
+        # Save test data
+        test_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_test_detailed.csv')
+        test_df.to_csv(test_filename, index=False)
+        print(f"Detailed test results saved as {test_filename}")
+
+    def save_summary_results(self, results):
+        # Create the directory if it doesn't exist
+        os.makedirs(self.metric_name, exist_ok=True)
+
+        # Create a DataFrame from the results dictionary
+        summary_df = pd.DataFrame([results])
+
+        # Save summary data
+        summary_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_summary.csv')
+        summary_df.to_csv(summary_filename, index=False)
+        print(f"Summary results saved as {summary_filename}")
+
     def run(self):
         try:
             print(f"Running strategy: {self.strategy_name}")
@@ -181,29 +207,19 @@ class StrategyChecker:
 
             optimization, best_window, best_threshold = self.optimize_strategy()
 
-            # Add this debug print before creating the strategy objects
             strategy_class = globals()[self.strategy_name]
-            # print(f"Creating strategy object of type: {strategy_class}")
 
             train_strategy = strategy_class(self.train_df, best_window, best_threshold, target='Value', price='Price',
                                             long_short=self.long_short, condition=self.condition)
             test_strategy = strategy_class(self.test_df, best_window, best_threshold, target='Value', price='Price',
                                            long_short=self.long_short, condition=self.condition)
 
-            # Add the debug print statements here
-            # print(f"Best strategy window: {best_window}, threshold: {best_threshold}")
-
-            train_sharpe, train_mdd, train_calmar = self.calculate_metrics(train_strategy)
-            test_sharpe, test_mdd, test_calmar = self.calculate_metrics(test_strategy)
-
             # Plot and save the heatmap and equity curves
             try:
                 self.plot_optimization_heatmap(optimization, test_strategy, best_window, best_threshold)
-                logging.info(
-                    f"Successfully generated heatmap for {self.strategy_name}, {self.long_short}, {self.condition}")
+                logging.info(f"Successfully generated heatmap for {self.strategy_name}, {self.long_short}, {self.condition}")
             except Exception as e:
-                logging.error(
-                    f"Error generating heatmap for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
+                logging.error(f"Error generating heatmap for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
 
             train_sharpe, train_mdd, train_calmar = self.calculate_metrics(train_strategy)
             test_sharpe, test_mdd, test_calmar = self.calculate_metrics(test_strategy)
@@ -211,6 +227,9 @@ class StrategyChecker:
             # Prepare detailed dataframes
             train_df_detailed = self.prepare_detailed_df(train_strategy)
             test_df_detailed = self.prepare_detailed_df(test_strategy)
+
+            # Save detailed results
+            self.save_detailed_results(train_df_detailed, test_df_detailed)
 
             # Calculate beta
             train_beta = self.calculate_beta(train_df_detailed)
@@ -242,13 +261,16 @@ class StrategyChecker:
                 'Test Num Trades': test_num_trades
             }
 
+            # Save summary results
+            self.save_summary_results(results)
+
             logging.info(f"Successfully processed: {self.strategy_name}, {self.long_short}, {self.condition}")
             return results
 
         except Exception as e:
-            logging.error(
-                f"Error in StrategyChecker.run for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
+            logging.error(f"Error in StrategyChecker.run for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
             return None
+
 
 def run_single_strategy(file_path, strategy_name, long_short, condition):
     checker = StrategyChecker(file_path, strategy_name, long_short, condition)
