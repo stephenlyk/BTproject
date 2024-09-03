@@ -192,7 +192,7 @@ def run_optimization():
             logger.error(f"Error in running_single_strategy for {run}: {str(e)}")
             return None
 
-    num_cores = multiprocessing.cpu_count() - 3  # Leave one core free
+    num_cores = multiprocessing.cpu_count() - 2  # Leave one core free
     parallel_results = Parallel(n_jobs=num_cores)(
         delayed(running_single_strategy)(run) for run in tqdm(running_list, total=total_combinations, desc="Processing strategies")
     )

@@ -17,25 +17,25 @@ FOLDER_NAME = 'glassnode_data_manual_BTCcheck'
 
 # Define the endpoints and their respective metrics with additional parameters
 ENDPOINTS = {
-    'addresses': [
-        {'metric': 'min_1k_count', 'params': []},
-    ],
-    'blockchain': [
-        {'metric': 'utxo_profit_relative', 'params': []},
-    ],
-    'derivatives': [
-        {'metric': 'options_25delta_skew_3_months', 'params': []},
-        {'metric': 'options_atm_implied_volatility_1_month', 'params': []},
-        {'metric': 'futures_open_interest_perpetual_sum', 'params': ['e=deribit']},
-        {'metric': 'futures_open_interest_perpetual_sum', 'params': []},
-        {'metric': 'options_open_interest_sum', 'params': ['e=deribit']},
-    ],
+    # 'addresses': [
+    #     {'metric': 'min_1k_count', 'params': []},
+    # ],
+    # 'blockchain': [
+    #     {'metric': 'utxo_profit_relative', 'params': []},
+    # ],
+    # 'derivatives': [
+    #     {'metric': 'options_25delta_skew_3_months', 'params': []},
+    #     {'metric': 'options_atm_implied_volatility_1_month', 'params': []},
+    #     {'metric': 'futures_open_interest_perpetual_sum', 'params': ['e=deribit']},
+    #     {'metric': 'futures_open_interest_perpetual_sum', 'params': []},
+    #     {'metric': 'options_open_interest_sum', 'params': ['e=deribit']},
+    # ],
     'distribution': [
         {'metric': 'balance_exchanges', 'params': ['c=NATIVE', 'e=binance']},
     ],
-    'market': [
-        {'metric': 'marketcap_usd', 'params': []},
-    ],
+    # 'market': [
+    #     {'metric': 'marketcap_usd', 'params': []},
+    # ],
     # 'addresses': [
     #     {'metric': 'accumulation_balance', 'params': ['c']},
     #     {'metric': 'supply_balance_less_0001', 'params': ['c']},
@@ -317,67 +317,35 @@ def fetch_and_save_data(start_date, end_date):
     for endpoint, metrics in tqdm(ENDPOINTS.items(), desc="Fetching endpoints"):
         for metric_info in tqdm(metrics, desc=f"Fetching metrics for {endpoint}", leave=False):
             metric = metric_info['metric']
-            params = metric_info['params']
+            params = {param.split('=')[0]: param.split('=')[1] for param in metric_info['params'] if '=' in param}
 
-            if 'c' in params:
-                currencies = ['NATIVE', 'USD']
+            request_params = {
+                'a': ASSET,
+                's': start_timestamp,
+                'u': end_timestamp,
+                'i': INTERVAL,
+                'api_key': GLASSNODE_API_KEY,
+                **params
+            }
+
+            data = fetch_glassnode_data(endpoint, metric, start_timestamp, end_timestamp, request_params)
+
+            if data:
+                df = pd.DataFrame(data)
+                df['Date'] = pd.to_datetime(df['t'], unit='s')
+                df = df.rename(columns={'v': metric})
+                df = df[['Date', metric]].set_index('Date').sort_index()
+
+                filename_parts = [endpoint, metric, ASSET]
+                for key, value in params.items():
+                    filename_parts.append(f"{key}_{value}")
+
+                csv_filename = os.path.join(data_folder, "_".join(filename_parts) + ".csv")
+
+                df.to_csv(csv_filename)
+                logging.info(f"Saved data for {endpoint}/{metric} to {csv_filename}")
             else:
-                currencies = [None]
-
-            if 'e' in params:
-                exchanges = ['aggregated', 'binance', 'bitfinex', 'bitmex', 'bitstamp', 'bittrex', 'bybit', 'coinbase', 'deribit', 'ftx', 'gemini', 'huobi', 'kraken', 'okex']
-            else:
-                exchanges = [None]
-
-            if 'from_exchange' in params and 'to_exchange' in params:
-                exchange_pairs = fetch_exchange_list(metric)
-            else:
-                exchange_pairs = [None]
-
-            if 'miner' in params:
-                miners = fetch_miner_list(metric)
-            else:
-                miners = [None]
-
-            for currency in currencies:
-                for exchange in exchanges:
-                    for exchange_pair in exchange_pairs:
-                        for miner in miners:
-                            request_params = {}
-                            if currency:
-                                request_params['c'] = currency
-                            if exchange:
-                                request_params['e'] = exchange
-                            if exchange_pair:
-                                request_params['from_exchange'] = exchange_pair['from']
-                                request_params['to_exchange'] = exchange_pair['to']
-                            if miner:
-                                request_params['miner'] = miner
-
-                            data = fetch_glassnode_data(endpoint, metric, start_timestamp, end_timestamp, request_params)
-
-                            if data:
-                                df = pd.DataFrame(data)
-                                df['Date'] = pd.to_datetime(df['t'], unit='s')
-                                df = df.rename(columns={'v': metric})
-                                df = df[['Date', metric]].set_index('Date').sort_index()
-
-                                filename_parts = [endpoint, metric, ASSET]
-                                if currency:
-                                    filename_parts.append(currency)
-                                if exchange:
-                                    filename_parts.append(exchange)
-                                if exchange_pair:
-                                    filename_parts.append(f"from_{exchange_pair['from']}_to_{exchange_pair['to']}")
-                                if miner:
-                                    filename_parts.append(miner)
-
-                                csv_filename = os.path.join(data_folder, "_".join(filename_parts) + ".csv")
-
-                                df.to_csv(csv_filename)
-                                logging.info(f"Saved data for {endpoint}/{metric} to {csv_filename}")
-                            else:
-                                logging.warning(f"No data available for {endpoint}/{metric} ({request_params})")
+                logging.warning(f"No data available for {endpoint}/{metric} ({request_params})")
 
 if __name__ == "__main__":
     start_date = datetime(2020, 1, 1, tzinfo=timezone.utc).date()
