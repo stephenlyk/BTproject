@@ -9,6 +9,7 @@ from strategy.roc import ROC
 from strategy.percentile import Percentile
 from strategy.min_max import MinMax
 from strategy.robust import Robust
+from strategy.divergence import Divergence
 from optimization import Optimization
 import requests
 import time
@@ -43,7 +44,8 @@ strategy_classes = {
     'ROC': ROC,
     'Percentile': Percentile,
     'MinMax': MinMax,
-    'Robust': Robust
+    'Robust': Robust,
+    'Divergence': Divergence  # Add this line
 }
 
 
@@ -123,9 +125,10 @@ def run_optimization():
         'ROC': np.round(np.linspace(-0.1, 0.1, 20), 3),
         'MinMax': np.round(np.linspace(0.1, 0.9, 20), 3),
         'Robust': np.round(np.linspace(0, 2, 20), 3),
-        'Percentile': np.round(np.linspace(0.1, 0.9, 20), 3)
+        'Percentile': np.round(np.linspace(0.1, 0.9, 20), 3),
+        'Divergence': np.round(np.linspace(-3, 3, 20), 3)
     }
-    strategy_list = ['ZScore', 'MovingAverage', 'RSI', 'ROC', 'MinMax', 'Robust', 'Percentile']
+    strategy_list = ['ZScore', 'MovingAverage', 'RSI', 'ROC', 'MinMax', 'Robust', 'Percentile', 'Divergence']
     long_short_params = ['long', 'short', 'both']
     condition_params = ['lower', 'higher']
 
