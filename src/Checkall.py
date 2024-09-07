@@ -20,6 +20,12 @@ def process_strategy(row):
 
         logging.info(f"Processing strategy: {strategy_name}, {long_short}, {condition} with file: {file_path}")
 
+        # Check if the strategy is available
+        available_strategies = ['ZScore', 'MovingAverage', 'RSI', 'ROC', 'MinMax', 'Robust', 'Percentile', 'Divergence']
+        if strategy_name not in available_strategies:
+            logging.warning(f"Strategy {strategy_name} not found in available strategies. Skipping.")
+            return None
+
         # Run the strategy
         result = run_single_strategy(file_path, strategy_name, long_short, condition)
 
