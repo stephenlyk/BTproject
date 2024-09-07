@@ -10,6 +10,7 @@ from strategy.min_max import MinMax
 from strategy.moving_average import MovingAverage
 from strategy.percentile import Percentile
 from strategy.rsi import RSI
+from strategy.divergence import Divergence
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
@@ -38,7 +39,8 @@ STRATEGY_PARAMS = {
     'ROC': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
     'MinMax': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
     'Robust': {'threshold_list': np.round(np.linspace(0, 2, 20), 3)},
-    'Percentile': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)}
+    'Percentile': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
+    'Divergence': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)}  # Add this line
 }
 
 class StrategyChecker:
@@ -121,7 +123,8 @@ class StrategyChecker:
             'ROC': 'ROC',
             'MovingAverage': 'MA_Score',
             'Percentile': 'Percentile_Score',
-            'RSI': 'RSI_Score'
+            'RSI': 'RSI_Score',
+            'Divergence': 'Divergence'  # Add this line
         }
 
         score_column = strategy_score_columns.get(self.strategy_name)

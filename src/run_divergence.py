@@ -2,14 +2,7 @@
 import os
 import numpy as np
 import pandas as pd
-from strategy.z_score import ZScore
-from strategy.moving_average import MovingAverage
-from strategy.rsi import RSI
-from strategy.roc import ROC
-from strategy.percentile import Percentile
-from strategy.min_max import MinMax
-from strategy.robust import Robust
-from strategy.divergence import Divergence
+from src.strategy.divergence import Divergence
 from optimization import Optimization
 import requests
 import time
@@ -35,19 +28,7 @@ INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_manual_BTCcheck'
-
-strategy_classes = {
-    'MovingAverage': MovingAverage,
-    'ZScore': ZScore,
-    'RSI': RSI,
-    'ROC': ROC,
-    'Percentile': Percentile,
-    'MinMax': MinMax,
-    'Robust': Robust,
-    'Divergence': Divergence  # Add this line
-}
-
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc_1hSept2024'
 
 def timeit(func):
     def wrapper(*args, **kwargs):
@@ -56,9 +37,7 @@ def timeit(func):
         end_time = time.time()
         logger.info(f"Function {func.__name__} took {end_time - start_time:.2f} seconds to execute.")
         return result
-
     return wrapper
-
 
 def fetch_glassnode_data(asset, interval, api_key):
     url = f"https://api.glassnode.com/v1/metrics/market/price_usd_close"
@@ -77,7 +56,6 @@ def fetch_glassnode_data(asset, interval, api_key):
     else:
         raise Exception(f"Failed to fetch data: {response.status_code}")
 
-
 def read_glassnode_csv(file_path):
     df = pd.read_csv(file_path)
     df.columns = ['Date', 'Value']
@@ -87,19 +65,16 @@ def read_glassnode_csv(file_path):
     df = df.dropna()
     return df
 
-
 def calculate_window_sizes(data_length):
     max_window = int(data_length * WINDOW_SIZE_PERCENT)
     min_window = 2
     return np.linspace(min_window, max_window, NUM_WINDOW_SIZES, dtype=int)
-
 
 def split_data(df, train_ratio=0.7):
     train_size = int(len(df) * train_ratio)
     train_df = df.iloc[:train_size]
     test_df = df.iloc[train_size:]
     return train_df, test_df
-
 
 @timeit
 def run_optimization():
@@ -118,32 +93,21 @@ def run_optimization():
             else:
                 logger.warning(f"Skipping empty DataFrame for {filename}")
 
-    threshold_params = {
-        'ZScore': np.round(np.linspace(-3, 3, 20), 3),
-        'MovingAverage': np.round(np.linspace(-0.1, 0.1, 20), 3),
-        'RSI': np.round(np.linspace(0.2, 0.8, 32), 3),
-        'ROC': np.round(np.linspace(-0.1, 0.1, 20), 3),
-        'MinMax': np.round(np.linspace(0.1, 0.9, 20), 3),
-        'Robust': np.round(np.linspace(0, 2, 20), 3),
-        'Percentile': np.round(np.linspace(0.1, 0.9, 20), 3),
-        'Divergence': np.round(np.linspace(-3, 3, 20), 3)
-    }
-    strategy_list = ['ZScore', 'MovingAverage', 'RSI', 'ROC', 'MinMax', 'Robust', 'Percentile', 'Divergence']
+    threshold_params = np.round(np.linspace(-3, 3, 20), 3)
     long_short_params = ['long', 'short', 'both']
     condition_params = ['lower', 'higher']
 
     running_list = []
     for filename in price_factor_dict:
-        for strategy in strategy_list:
-            for long_short in long_short_params:
-                for condition in condition_params:
-                    test = {
-                        'Metric': filename,
-                        'Strategy': strategy,
-                        'Strategy Type': long_short,
-                        'Condition': condition
-                    }
-                    running_list.append(test)
+        for long_short in long_short_params:
+            for condition in condition_params:
+                test = {
+                    'Metric': filename,
+                    'Strategy': 'Divergence',
+                    'Strategy Type': long_short,
+                    'Condition': condition
+                }
+                running_list.append(test)
 
     total_combinations = len(running_list)
     logger.info(f"Total combinations to process: {total_combinations}")
@@ -167,8 +131,7 @@ def run_optimization():
             data_length = len(train_df)
             window_size_list = calculate_window_sizes(data_length)
 
-            train_optimization = Optimization(run['Strategy'], train_df, window_size_list,
-                                              threshold_params[run['Strategy']],
+            train_optimization = Optimization('Divergence', train_df, window_size_list, threshold_params,
                                               target=run['Metric'], price='Price', long_short=run['Strategy Type'],
                                               condition=run['Condition'])
             train_optimization.run()
@@ -179,10 +142,9 @@ def run_optimization():
                 return None
 
             # Run on test data with best parameters
-            StrategyClass = strategy_classes[run['Strategy']]
-            test_strategy = StrategyClass(test_df, best_strategy.window_size, best_strategy.threshold,
-                                          target=run['Metric'], price='Price', long_short=run['Strategy Type'],
-                                          condition=run['Condition'])
+            test_strategy = Divergence(test_df, best_strategy.window_size, best_strategy.threshold,
+                                       target=run['Metric'], price='Price', long_short=run['Strategy Type'],
+                                       condition=run['Condition'])
 
             result = {
                 'Train Sharpe': best_strategy.sharpe,
@@ -215,7 +177,7 @@ if __name__ == "__main__":
             valid_results = [result for result in results_list if result is not None]
             if valid_results:
                 results_df = pd.DataFrame(valid_results)
-                results_df.to_csv(f"{ASSET.lower()}_factor_test_final.csv", index=False)
+                results_df.to_csv(f"{ASSET.lower()}_divergence_factor_test_final.csv", index=False)
                 logger.info('Optimization completed and final results saved')
                 logger.info(results_df)
             else:
