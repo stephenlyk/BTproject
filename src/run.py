@@ -35,7 +35,7 @@ INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_manual_BTCcheck'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/untitled folder'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -148,6 +148,8 @@ def run_optimization():
     total_combinations = len(running_list)
     logger.info(f"Total combinations to process: {total_combinations}")
 
+    import traceback
+
     def running_single_strategy(run):
         try:
             filename = run['Metric']
@@ -167,7 +169,8 @@ def run_optimization():
             data_length = len(train_df)
             window_size_list = calculate_window_sizes(data_length)
 
-            train_optimization = Optimization(run['Strategy'], train_df, window_size_list,
+            StrategyClass = strategy_classes[run['Strategy']]
+            train_optimization = Optimization(StrategyClass, train_df, window_size_list,
                                               threshold_params[run['Strategy']],
                                               target=run['Metric'], price='Price', long_short=run['Strategy Type'],
                                               condition=run['Condition'])
@@ -179,7 +182,6 @@ def run_optimization():
                 return None
 
             # Run on test data with best parameters
-            StrategyClass = strategy_classes[run['Strategy']]
             test_strategy = StrategyClass(test_df, best_strategy.window_size, best_strategy.threshold,
                                           target=run['Metric'], price='Price', long_short=run['Strategy Type'],
                                           condition=run['Condition'])
@@ -193,9 +195,10 @@ def run_optimization():
             return run | result
         except Exception as e:
             logger.error(f"Error in running_single_strategy for {run}: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
-    num_cores = multiprocessing.cpu_count() - 2  # Leave one core free
+    num_cores = multiprocessing.cpu_count() - 5  # Leave one core free
     parallel_results = Parallel(n_jobs=num_cores)(
         delayed(running_single_strategy)(run) for run in tqdm(running_list, total=total_combinations, desc="Processing strategies")
     )

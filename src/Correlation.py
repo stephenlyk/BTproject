@@ -15,10 +15,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_btc10m"
-shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/BTC10m/31Aug2024/all_strategies_results.csv"
+BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_btc1hSept2024"
+shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/11Sept2024/all_strategies_results.csv"
 ASSET = 'BTC'
-INTERVAL = '10m'
+INTERVAL = '1h'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key
 
 # Function to determine multiplier based on INTERVAL

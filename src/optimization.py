@@ -4,20 +4,12 @@ import plotly.express as px
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.io as pio
-from strategy.moving_average import MovingAverage
-from strategy.z_score import ZScore
-from strategy.rsi import RSI
-from strategy.roc import ROC
-from strategy.percentile import Percentile
-from strategy.min_max import MinMax
-from strategy.robust import Robust
 from joblib import Parallel, delayed
-
 
 class Optimization():
 
-    def __init__(self, strategy_name, source_df, window_size_list, threshold_list, target, price='Price', long_short='long', condition='higher'):
-        self.strategy_name = strategy_name
+    def __init__(self, strategy_class, source_df, window_size_list, threshold_list, target, price='Price', long_short='long', condition='higher'):
+        self.strategy_class = strategy_class
         self.source_df = source_df
         self.window_size_list = window_size_list
         self.threshold_list = threshold_list
@@ -28,12 +20,8 @@ class Optimization():
 
         self.results_data_df = pd.DataFrame()
 
-        if self.strategy_name not in globals():
-            return
-
     def _run_strategy(self, window_size, threshold):
-        strategy = globals()[self.strategy_name]
-        result = strategy(self.source_df, window_size, threshold, target=self.target, price=self.price, long_short=self.long_short, condition=self.condition)
+        result = self.strategy_class(self.source_df, window_size, threshold, target=self.target, price=self.price, long_short=self.long_short, condition=self.condition)
         return result
 
     def run(self):
