@@ -47,7 +47,7 @@ class Optimization():
 
         # Plot heatmap
         sns.heatmap(result_data_pivot, cmap="Greens", annot=True, ax=ax1)
-        ax1.set_title(f"{self.strategy_name} {self.long_short.capitalize()} Optimization Heatmap")
+        ax1.set_title(f"{self.strategy_class.__name__} {self.long_short.capitalize()} Optimization Heatmap")
         ax1.set_xlabel('Threshold')
         ax1.set_ylabel('Window Size')
 
@@ -55,7 +55,6 @@ class Optimization():
         best_strategy = self.results_data_df[(self.results_data_df['Window'] == best_window) &
                                              (self.results_data_df['Threshold'] == best_threshold)][
             'Strategy Object'].iloc[0]
-
 
         # Plot equity curve using the correct best strategy
         ax2.plot(best_strategy.result_df['Date'], best_strategy.result_df['Cumulative_Profit'], label='Train Strategy',
@@ -70,7 +69,7 @@ class Optimization():
                      label='Test Buy and Hold', color='green', linestyle='--')
 
         ax2.set_title(
-            f"Equity Curve - {self.strategy_name} (Window: {best_strategy.window_size}, Threshold: {best_strategy.threshold:.3f})")
+            f"Equity Curve - {self.strategy_class.__name__} (Window: {best_strategy.window_size}, Threshold: {best_strategy.threshold:.3f})")
         ax2.set_xlabel('Date')
         ax2.set_ylabel('Cumulative Profit')
         ax2.legend()
@@ -100,7 +99,6 @@ class Optimization():
             plt.show()
 
         print(self.results_data_df.head())
-
     def get_best(self):
         return self.results_data_df.iloc[0]['Strategy Object']
 

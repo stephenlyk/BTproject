@@ -9,15 +9,16 @@ from strategy.z_score import ZScore
 from strategy.moving_average import MovingAverage
 from strategy.roc import ROC
 from strategy.percentile import Percentile
+from strategy.divergence import Divergence
 from joblib import Parallel, delayed
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_btc1hSept2024"
-shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/11Sept2024/all_strategies_results.csv"
-ASSET = 'BTC'
+BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_eth1hSept2024"
+shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/15Sept2024/all_strategies_results.csv"
+ASSET = 'ETH'
 INTERVAL = '1h'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key
 
@@ -61,7 +62,8 @@ def get_strategy_class(strategy_name):
         'ZScore': ZScore,
         'MovingAverage': MovingAverage,
         'ROC': ROC,
-        'Percentile': Percentile
+        'Percentile': Percentile,
+        'Divergence': Divergence
     }
     return strategy_map.get(strategy_name, Strategy)
 

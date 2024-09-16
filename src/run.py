@@ -35,7 +35,7 @@ INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/untitled folder'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/test'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,

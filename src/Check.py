@@ -22,7 +22,7 @@ WINDOW_SIZE_PERCENT = 0.1  # 10%
 NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
-ASSET = 'BTC'
+ASSET = 'ETH'
 INTERVAL = '1h'
 
 # File and Strategy
@@ -47,6 +47,7 @@ class StrategyChecker:
     def __init__(self, file_path, strategy_name, long_short, condition):
         self.file_path = file_path
         self.strategy_name = strategy_name
+        self.strategy_class = globals()[strategy_name]
         self.long_short = long_short
         self.condition = condition
         self.commission = COMMISSION
@@ -96,7 +97,7 @@ class StrategyChecker:
         return np.linspace(min_window, max_window, NUM_WINDOW_SIZES, dtype=int)
 
     def optimize_strategy(self):
-        optimization = Optimization(self.strategy_name, self.train_df, self.window_size_list, self.threshold_list,
+        optimization = Optimization(self.strategy_class, self.train_df, self.window_size_list, self.threshold_list,
                                     target='Value', price='Price', long_short=self.long_short,
                                     condition=self.condition)
         optimization.run()
