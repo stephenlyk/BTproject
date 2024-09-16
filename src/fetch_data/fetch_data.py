@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Constants
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
 ASSET = 'BTC'
-INTERVAL = '10m'
-FOLDER_NAME = 'glassnode_data_btc10m'  # User can modify this line directly in the code
+INTERVAL = '24h'
+FOLDER_NAME = 'glassnode_data_btc24h_Sept2024'  # User can modify this line directly in the code
 
 def fetch_and_save_data(start_date, end_date):
     data_handler = DataHandler(GLASSNODE_API_KEY, ASSET, INTERVAL, FOLDER_NAME)  # Changed to FOLDER_NAME
