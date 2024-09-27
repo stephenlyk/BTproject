@@ -66,15 +66,11 @@ ENDPOINTS = {
         {'metric': 'balance_exchanges_relative_pit', 'params': ['e']},
         {'metric': 'balance_exchanges_pit', 'params': ['c', 'e']},
         {'metric': 'exchange_net_position_change_pit', 'params': ['c', 'e']},
-            {'metric': 'balance_exchanges_relative', 'params': ['e']},
-            {'metric': 'balance_exchanges', 'params': ['c', 'e']},
-            {'metric': 'exchange_net_position_change', 'params': ['c', 'e']},
-            {'metric': 'supply_contracts', 'params': ['c']},
-            {'metric': 'balance_1pct_holders', 'params': ['c']},
-    ],
-    'transactions': [
-        {'metric': 'transfers_volume_exchanges_net_pit', 'params': ['c', 'e']},
-        {'metric': 'transfers_volume_exchanges_net_by_size_pit', 'params': ['c', 'e']},
+        {'metric': 'balance_exchanges_relative', 'params': ['e']},
+        {'metric': 'balance_exchanges', 'params': ['c', 'e']},
+        {'metric': 'exchange_net_position_change', 'params': ['c', 'e']},
+        {'metric': 'supply_contracts', 'params': ['c']},
+        {'metric': 'balance_1pct_holders', 'params': ['c']},
     ],
     'indicators': [
         {'metric': 'svl_entity_adjusted_24h', 'params': ['c']},
@@ -200,6 +196,8 @@ ENDPOINTS = {
         {'metric': 'transfers_from_miners_count', 'params': ['miner']},
         {'metric': 'transfers_volume_miners_to_exchanges', 'params': ['c', 'e']},
         {'metric': 'transfers_volume_miners_to_exchanges_all', 'params': ['c', 'e']},
+        {'metric': 'transfers_volume_exchanges_net_pit', 'params': ['c', 'e']},
+        {'metric': 'transfers_volume_exchanges_net_by_size_pit', 'params': ['c', 'e']},
     ]
 }
 

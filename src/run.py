@@ -31,11 +31,11 @@ pd.set_option('display.width', 1000)
 COMMISSION = 0.0007
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '24h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/test'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/untitled folder'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -198,7 +198,7 @@ def run_optimization():
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
-    num_cores = multiprocessing.cpu_count() - 5  # Leave one core free
+    num_cores = multiprocessing.cpu_count() - 3  # Leave one core free
     parallel_results = Parallel(n_jobs=num_cores)(
         delayed(running_single_strategy)(run) for run in tqdm(running_list, total=total_combinations, desc="Processing strategies")
     )
