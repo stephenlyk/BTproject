@@ -23,7 +23,7 @@ NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '24h'
+INTERVAL = '1h'
 
 # File and Strategy
 FILE_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/17Aug2024/book3.csv"
@@ -56,9 +56,18 @@ class StrategyChecker:
         self.train_df, self.test_df = self.split_data()
         self.window_size_list = self.calculate_window_sizes()
         self.threshold_list = STRATEGY_PARAMS[self.strategy_name]['threshold_list']
-
-        # Extract metric name from file path
         self.metric_name = os.path.splitext(os.path.basename(self.file_path))[0]
+        self.result_folder = "result"
+        self.metric_folder = os.path.join(self.result_folder, self.metric_name)
+        self.ensure_folders_exist()
+
+    def ensure_folders_exist(self):
+        if not os.path.exists(self.result_folder):
+            os.makedirs(self.result_folder)
+            print(f"Created folder: {self.result_folder}")
+        if not os.path.exists(self.metric_folder):
+            os.makedirs(self.metric_folder)
+            print(f"Created folder: {self.metric_folder}")
 
     def fetch_glassnode_data(self):
         url = f"https://api.glassnode.com/v1/metrics/market/price_usd_close"
@@ -145,13 +154,8 @@ class StrategyChecker:
         return (df['Position'].diff() != 0).sum()
 
     def plot_optimization_heatmap(self, optimization, test_strategy, best_window, best_threshold):
-        # Create the directory if it doesn't exist
-        os.makedirs(self.metric_name, exist_ok=True)
-
-        # Define the save path with condition included
-        heatmap_filename = os.path.join(self.metric_name,
+        heatmap_filename = os.path.join(self.metric_folder,
                                         f'{self.strategy_name}_{self.long_short}_{self.condition}_heatmap_and_equity.png')
-
         try:
             # Remove duplicate entries from the results_data_df
             optimization.results_data_df = optimization.results_data_df.groupby(
@@ -177,29 +181,19 @@ class StrategyChecker:
         plt.close()
 
     def save_detailed_results(self, train_df, test_df):
-        # Create the directory if it doesn't exist
-        os.makedirs(self.metric_name, exist_ok=True)
-
-        # Save train data
-        train_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_train_detailed.csv')
+        train_filename = os.path.join(self.metric_folder,
+                                      f'{self.strategy_name}_{self.long_short}_{self.condition}_train_detailed.csv')
+        test_filename = os.path.join(self.metric_folder,
+                                     f'{self.strategy_name}_{self.long_short}_{self.condition}_test_detailed.csv')
         train_df.to_csv(train_filename, index=False)
-        print(f"Detailed train results saved as {train_filename}")
-
-        # Save test data
-        test_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_test_detailed.csv')
         test_df.to_csv(test_filename, index=False)
+        print(f"Detailed train results saved as {train_filename}")
         print(f"Detailed test results saved as {test_filename}")
 
     def save_summary_results(self, results):
-        # Create the directory if it doesn't exist
-        os.makedirs(self.metric_name, exist_ok=True)
-
-        # Create a DataFrame from the results dictionary
-        summary_df = pd.DataFrame([results])
-
-        # Save summary data
-        summary_filename = os.path.join(self.metric_name, f'{self.strategy_name}_{self.long_short}_{self.condition}_summary.csv')
-        summary_df.to_csv(summary_filename, index=False)
+        summary_filename = os.path.join(self.metric_folder,
+                                        f'{self.strategy_name}_{self.long_short}_{self.condition}_summary.csv')
+        pd.DataFrame([results]).to_csv(summary_filename, index=False)
         print(f"Summary results saved as {summary_filename}")
 
     def run(self):

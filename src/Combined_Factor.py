@@ -3,7 +3,7 @@ import os
 from itertools import product
 
 # Define paths
-DATA_DIR = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc_1hSept2024'
+DATA_DIR = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc24h_Sept2024'
 OUTPUT_DIR = '/Users/stephenlyk/Desktop/Gnproject/combined_factorcheck'
 
 # Ensure output directory exists

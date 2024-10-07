@@ -16,9 +16,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = "/Users/stephenlyk/Desktop/Gnproject/glassnode_data_eth1hSept2024"
-shortlist_path = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/15Sept2024/all_strategies_results.csv"
-ASSET = 'ETH'
+BASE_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/5Oct2024/glassnode_data_btc1h_Sept2024'
+shortlist_path = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/5Oct2024/Final_list.csv'
+ASSET = 'BTC'
 INTERVAL = '1h'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key
 
@@ -28,7 +28,7 @@ def get_multiplier(interval):
         return 365 * 24 * 6  # 6 ten-minute intervals per hour
     elif interval == '1h':
         return 365 * 24
-    elif interval == '1d':
+    elif interval == '24h':
         return 365
     else:
         raise ValueError(f"Unsupported interval: {interval}")
@@ -74,15 +74,13 @@ def process_metric(row, btc_price_df):
         print(f"Skipping row with empty metric file: {row}")
         return None
 
-    # Ensure the metric_file has the correct base path
     if not metric_file.startswith(BASE_PATH):
         metric_file = os.path.join(BASE_PATH, os.path.basename(metric_file))
 
-    print(f"Attempting to read file: {metric_file}")  # Add this line to print the file path
+    print(f"Attempting to read file: {metric_file}")
 
     metric_name = os.path.basename(metric_file).split('.')[0]
 
-    # Read and process metric data
     try:
         metric_df = pd.read_csv(metric_file)
         metric_df.columns = ['Date', 'Value']
@@ -91,13 +89,15 @@ def process_metric(row, btc_price_df):
         metric_df['Value'] = metric_df['Value'].shift(2)
         metric_df = metric_df.dropna()
 
-        # Merge BTC price data with metric data
         merged_df = metric_df.join(btc_price_df, how='inner')
 
-        # Get the appropriate strategy class
         StrategyClass = get_strategy_class(row['Strategy'])
 
-        # Create a strategy instance
+        # Check if 'Best Window' and 'Best Threshold' are valid
+        if pd.isna(row['Best Window']) or pd.isna(row['Best Threshold']):
+            print(f"Skipping invalid window or threshold for {metric_name}")
+            return None
+
         strategy = StrategyClass(
             source_df=merged_df,
             window_size=int(row['Best Window']),
@@ -108,11 +108,12 @@ def process_metric(row, btc_price_df):
             condition=row['Condition'].lower()
         )
 
-        # Get the result dataframe
         result_df = strategy.result_df
 
-        # Return only the Profit column with the metric name
-        return pd.Series(result_df['Profit'], name=metric_name)
+        # Create a unique key for this combination
+        unique_key = f"{metric_name}_{row['Strategy']}_{row['Long_Short']}_{row['Condition']}_{int(row['Best Window'])}_{row['Best Threshold']}"
+
+        return pd.Series(result_df['Profit'], name=unique_key)
 
     except FileNotFoundError:
         print(f"File not found: {metric_file}")
@@ -131,7 +132,7 @@ btc_price_df = fetch_glassnode_data()
 results = Parallel(n_jobs=-1)(delayed(process_metric)(row, btc_price_df) for _, row in shortlist_df.iterrows())
 
 # Combine all results into a single dataframe
-all_profits_df = pd.concat(results, axis=1)
+all_profits_df = pd.concat([result for result in results if result is not None], axis=1)
 
 # Calculate equally weighted combined strate gy
 all_profits_df['Combined_Profit'] = all_profits_df.mean(axis=1)
@@ -192,7 +193,7 @@ all_profits_df.to_csv(output_file)
 print(f"\nAll metrics profits saved to {output_file}")
 
 # Calculate correlation matrix
-correlation_matrix = all_profits_df.drop(['Combined_Profit', 'Cumulative_Profit', 'BnH_Cumulative'], axis=1).corr()
+correlation_matrix = all_profits_df.corr()
 
 # Save the correlation matrix to a CSV file
 correlation_matrix.to_csv('correlation_matrix.csv')
