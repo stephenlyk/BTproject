@@ -35,7 +35,7 @@ INTERVAL = '24h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/test'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_daily_Oct2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
