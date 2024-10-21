@@ -106,7 +106,8 @@ class StrategyChecker:
         return np.linspace(min_window, max_window, NUM_WINDOW_SIZES, dtype=int)
 
     def optimize_strategy(self):
-        optimization = Optimization(self.strategy_class, self.train_df, self.window_size_list, self.threshold_list,
+        optimization = Optimization(self.strategy_class, self.train_df, self.test_df, self.window_size_list,
+                                    self.threshold_list,
                                     target='Value', price='Price', long_short=self.long_short,
                                     condition=self.condition)
         optimization.run()
@@ -153,17 +154,19 @@ class StrategyChecker:
         # Calculate the number of trades by counting position changes
         return (df['Position'].diff() != 0).sum()
 
-    def plot_optimization_heatmap(self, optimization, test_strategy, best_window, best_threshold):
+    def plot_optimization_heatmap(self, optimization, best_window, best_threshold):
         heatmap_filename = os.path.join(self.metric_folder,
                                         f'{self.strategy_name}_{self.long_short}_{self.condition}_heatmap_and_equity.png')
         try:
             # Remove duplicate entries from the results_data_df
-            optimization.results_data_df = optimization.results_data_df.groupby(
+            optimization.train_results_data_df = optimization.train_results_data_df.groupby(
+                ['Window', 'Threshold']).first().reset_index()
+            optimization.test_results_data_df = optimization.test_results_data_df.groupby(
                 ['Window', 'Threshold']).first().reset_index()
 
             # Use the plot_heat_map method from the Optimization class
-            optimization.plot_heat_map(save_path=heatmap_filename, test_strategy=test_strategy,
-                                       best_window=best_window, best_threshold=best_threshold)
+            optimization.plot_heat_map(save_path=heatmap_filename, best_window=best_window,
+                                       best_threshold=best_threshold)
 
             print(f"Heatmap and equity curve saved as {heatmap_filename}")
         except Exception as e:
@@ -214,10 +217,12 @@ class StrategyChecker:
 
             # Plot and save the heatmap and equity curves
             try:
-                self.plot_optimization_heatmap(optimization, test_strategy, best_window, best_threshold)
-                logging.info(f"Successfully generated heatmap for {self.strategy_name}, {self.long_short}, {self.condition}")
+                self.plot_optimization_heatmap(optimization, best_window, best_threshold)
+                logging.info(
+                    f"Successfully generated heatmap for {self.strategy_name}, {self.long_short}, {self.condition}")
             except Exception as e:
-                logging.error(f"Error generating heatmap for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
+                logging.error(
+                    f"Error generating heatmap for {self.strategy_name}, {self.long_short}, {self.condition}: {str(e)}")
 
             train_sharpe, train_mdd, train_calmar = self.calculate_metrics(train_strategy)
             test_sharpe, test_mdd, test_calmar = self.calculate_metrics(test_strategy)
