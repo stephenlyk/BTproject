@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Constants
 SANTIMENT_API_KEY = 'dlpuyo2zmkqrwtq3_yb7sjowvpd3nt334'
 ASSET = 'bitcoin'
-FOLDER_NAME = 'santiment_data_btc_daily_Oct2024'
+FOLDER_NAME = 'santiment_data_btc_1h_Oct2024'
 
 san.ApiConfig.api_key = SANTIMENT_API_KEY
 
@@ -29,7 +29,7 @@ def fetch_and_save_data(start_date, end_date):
                 f"{metric}/{ASSET}",
                 from_date=start_date,
                 to_date=end_date,
-                interval="1d"
+                interval="60m"
             )
 
             if df is None or df.empty:
@@ -37,7 +37,7 @@ def fetch_and_save_data(start_date, end_date):
                 continue
 
             # Convert the index to date string format 'YYYY-MM-DD'
-            df.index = df.index.strftime('%Y-%m-%d')
+            df.index = df.index.strftime('%Y-%m-%d %H:%M:%S')
 
             # Rename the column to match the metric name
             df.columns = [metric]
@@ -55,6 +55,6 @@ def fetch_and_save_data(start_date, end_date):
 
 
 if __name__ == "__main__":
-    start_date = "2020-01-01"
-    end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    start_date = "2020-01-01T00:00:00Z"
+    end_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     fetch_and_save_data(start_date, end_date)

@@ -17,13 +17,13 @@ import logging
 from config import GLASSNODE_API_KEY
 
 # Standard User Input Section
-COMMISSION = 0.0007  # 7 basis points, change as needed
+COMMISSION = 0.0005  # 7 basis points, change as needed
 WINDOW_SIZE_PERCENT = 0.1  # 10%
 NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '24h'
 
 # File and Strategy
 FILE_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/17Aug2024/book3.csv"

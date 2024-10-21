@@ -25,7 +25,7 @@ class Optimization():
         return result
 
     def run(self):
-        results = Parallel(n_jobs=-3, prefer="processes")(
+        results = Parallel(n_jobs=-5, prefer="processes")(
             delayed(self._run_strategy)(window_size, threshold) for window_size in self.window_size_list for threshold
             in self.threshold_list)
 

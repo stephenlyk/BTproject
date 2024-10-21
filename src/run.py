@@ -28,14 +28,14 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 
 # User Input Section
-COMMISSION = 0.0007
+COMMISSION = 0.0005
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '24h'
+INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_daily_Oct2024'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_1h_Oct2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -121,7 +121,7 @@ def run_optimization():
     threshold_params = {
         'ZScore': np.round(np.linspace(-3, 3, 20), 3),
         'MovingAverage': np.round(np.linspace(-0.1, 0.1, 20), 3),
-        'RSI': np.round(np.linspace(0.2, 0.8, 32), 3),
+        'RSI': np.round(np.linspace(0.2, 0.8, 20), 3),
         'ROC': np.round(np.linspace(-0.1, 0.1, 20), 3),
         'MinMax': np.round(np.linspace(0.1, 0.9, 20), 3),
         'Robust': np.round(np.linspace(0, 2, 20), 3),
@@ -198,7 +198,7 @@ def run_optimization():
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
-    num_cores = multiprocessing.cpu_count() - 3  # Leave one core free
+    num_cores = multiprocessing.cpu_count() - 5  # Leave one core free
     parallel_results = Parallel(n_jobs=num_cores)(
         delayed(running_single_strategy)(run) for run in tqdm(running_list, total=total_combinations, desc="Processing strategies")
     )

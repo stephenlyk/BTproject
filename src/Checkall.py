@@ -7,8 +7,8 @@ from Check import run_single_strategy
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-BASE_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/5Oct2024/glassnode_data_btc1h_Sept2024'
-STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/5Oct2024/Shortlist.csv'
+BASE_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC24h/20Oct2024/santiment_data_btc_daily_Oct2024'
+STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC24h/20Oct2024/Book1.csv'
 
 
 def process_strategy(row):
