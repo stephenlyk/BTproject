@@ -31,11 +31,11 @@ pd.set_option('display.width', 1000)
 COMMISSION = 0.0005
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '24h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_1h_Oct2024'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Strategy Bank/BTC24h/20Oct2024/santiment_data_btc_daily_Oct2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -170,7 +170,7 @@ def run_optimization():
             window_size_list = calculate_window_sizes(data_length)
 
             StrategyClass = strategy_classes[run['Strategy']]
-            train_optimization = Optimization(StrategyClass, train_df, window_size_list,
+            train_optimization = Optimization(StrategyClass, train_df, test_df, window_size_list,
                                               threshold_params[run['Strategy']],
                                               target=run['Metric'], price='Price', long_short=run['Strategy Type'],
                                               condition=run['Condition'])
@@ -182,15 +182,14 @@ def run_optimization():
                 return None
 
             # Run on test data with best parameters
-            test_strategy = StrategyClass(test_df, best_strategy.window_size, best_strategy.threshold,
-                                          target=run['Metric'], price='Price', long_short=run['Strategy Type'],
-                                          condition=run['Condition'])
+            best_train_strategy = train_optimization.train_results_data_df.iloc[0]['Strategy Object']
+            best_test_strategy = train_optimization.test_results_data_df.iloc[0]['Strategy Object']
 
             result = {
-                'Train Sharpe': best_strategy.sharpe,
-                'Test Sharpe': test_strategy.sharpe,
-                'Best Window': best_strategy.window_size,
-                'Best Threshold': best_strategy.threshold
+                'Train Sharpe': best_train_strategy.sharpe,
+                'Test Sharpe': best_test_strategy.sharpe,
+                'Best Window': best_train_strategy.window_size,
+                'Best Threshold': best_train_strategy.threshold
             }
             return run | result
         except Exception as e:
