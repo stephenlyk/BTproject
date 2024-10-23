@@ -35,7 +35,7 @@ INTERVAL = '24h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Strategy Bank/BTC24h/20Oct2024/santiment_data_btc_daily_Oct2024'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_daily_Oct2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -177,19 +177,16 @@ def run_optimization():
             train_optimization.run()
             best_strategy = train_optimization.get_best()
 
-            if best_strategy is None:
-                logger.warning(f"No best strategy found for {run}")
-                return None
-
-            # Run on test data with best parameters
-            best_train_strategy = train_optimization.train_results_data_df.iloc[0]['Strategy Object']
-            best_test_strategy = train_optimization.test_results_data_df.iloc[0]['Strategy Object']
+            # Run test data separately using best parameters from training
+            test_strategy = StrategyClass(test_df, best_strategy.window_size, best_strategy.threshold,
+                                          target=run['Metric'], price='Price', long_short=run['Strategy Type'],
+                                          condition=run['Condition'])
 
             result = {
-                'Train Sharpe': best_train_strategy.sharpe,
-                'Test Sharpe': best_test_strategy.sharpe,
-                'Best Window': best_train_strategy.window_size,
-                'Best Threshold': best_train_strategy.threshold
+                'Train Sharpe': best_strategy.sharpe,
+                'Test Sharpe': test_strategy.sharpe,
+                'Best Window': best_strategy.window_size,
+                'Best Threshold': best_strategy.threshold
             }
             return run | result
         except Exception as e:
