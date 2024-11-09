@@ -23,7 +23,7 @@ NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '24h'
+INTERVAL = '1h'
 
 # File and Strategy
 FILE_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/17Aug2024/book3.csv"

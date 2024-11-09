@@ -31,11 +31,11 @@ pd.set_option('display.width', 1000)
 COMMISSION = 0.0005
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '24h'
+INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/santiment_data_btc_daily_Oct2024'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -83,7 +83,7 @@ def read_glassnode_csv(file_path):
     df.columns = ['Date', 'Value']
     df['Date'] = pd.to_datetime(df['Date'])
     df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
-    df['Value'] = df['Value'].shift(1)  # Add this line to shift the data
+    df['Value'] = df['Value'].shift(2)  # Add this line to shift the data
     df = df.dropna()
     return df
 
@@ -121,7 +121,7 @@ def run_optimization():
     threshold_params = {
         'ZScore': np.round(np.linspace(-3, 3, 20), 3),
         'MovingAverage': np.round(np.linspace(-0.1, 0.1, 20), 3),
-        'RSI': np.round(np.linspace(0.2, 0.8, 20), 3),
+        'RSI': np.round(np.linspace(0.2, 0.8, 10), 3),
         'ROC': np.round(np.linspace(-0.1, 0.1, 20), 3),
         'MinMax': np.round(np.linspace(0.1, 0.9, 20), 3),
         'Robust': np.round(np.linspace(0, 2, 20), 3),
@@ -194,7 +194,7 @@ def run_optimization():
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
-    num_cores = multiprocessing.cpu_count() - 5  # Leave one core free
+    num_cores = multiprocessing.cpu_count() - 2  # Leave one core free
     parallel_results = Parallel(n_jobs=num_cores)(
         delayed(running_single_strategy)(run) for run in tqdm(running_list, total=total_combinations, desc="Processing strategies")
     )
