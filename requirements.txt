@@ -6,3 +6,12 @@ plotly==5.23.0
 Requests==2.32.3
 seaborn==0.13.2
 tqdm==4.66.5
+dask[complete]
+distributed
+bokeh
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+psutil
