@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3473f6cb-b263-4ce9-b80d-de98dbc9c988" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/fetch_data/fetch_data_update.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Check.py" beforeDir="false" afterPath="$PROJECT_DIR$/Check.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Checkall.py" beforeDir="false" afterPath="$PROJECT_DIR$/Checkall.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Correlation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Correlation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fetch_data/data_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/fetch_data/data_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fetch_data/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/fetch_data/fetch_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fetch_data/fetch_data_manual.py" beforeDir="false" afterPath="$PROJECT_DIR$/fetch_data/fetch_data_manual.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/optimization.py" beforeDir="false" afterPath="$PROJECT_DIR$/optimization.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="2oISuzqQwFVuEC1fBzsVFobY1pd" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.fetch_data_santiment.executor": "Run",
+    "Python.fetch_data_update_santiment.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "/Users/stephenlyk/Desktop/Gnproject/src"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-f5635417b835-31b6be0877a2-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.18968.29" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3473f6cb-b263-4ce9-b80d-de98dbc9c988" name="Changes" comment="" />
+      <created>1730555824272</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1730555824272</updated>
+    </task>
+    <servers />
+  </component>
+</project>
