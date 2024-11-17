@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Constants
 SANTIMENT_API_KEY = 'dlpuyo2zmkqrwtq3_yb7sjowvpd3nt334'
 ASSET = 'bitcoin'
-FOLDER_NAME = 'santiment_data_btc_1h_Oct2024'
+FOLDER_NAME = 'santiment_data_btc_1h_Nov2024'
 
 san.ApiConfig.api_key = SANTIMENT_API_KEY
 

@@ -16,8 +16,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/28Oct2024/Data'
-shortlist_path = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/28Oct2024/all_strategies_results.csv'
+BASE_PATH = '/Users/stephenlyk/Deskto p/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
+shortlist_path = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/13Nov2024/all_strategies_results_test.csv'
 ASSET = 'BTC'
 INTERVAL = '1h'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key

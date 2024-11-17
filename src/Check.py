@@ -90,7 +90,7 @@ class StrategyChecker:
         df = pd.read_csv(self.file_path)
         df.columns = ['Date', 'Value']
         df['Date'] = pd.to_datetime(df['Date'])
-        df['Value'] = df['Value'].shift(1)
+        df['Value'] = df['Value'].shift(2)
         merged_df = pd.merge(self.btc_price_df, df, on='Date', how='inner')
         merged_df = merged_df.sort_values('Date').dropna()
         return merged_df

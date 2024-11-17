@@ -7,8 +7,8 @@ from Check import run_single_strategy
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-BASE_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/28Oct2024/Data'
-STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/28Oct2024/28Oct2024.csv'
+BASE_PATH = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
+STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/13Nov2024/Book_combined.csv'
 
 
 def process_strategy(row):
@@ -58,7 +58,7 @@ def main():
         strat_list = pd.read_csv(STRATEGY_PATH)
 
         # Use joblib to parallelize the processing
-        num_cores = os.cpu_count() - 3  # Leave one core free
+        num_cores = os.cpu_count() - 2  # Leave one core free
         results = Parallel(n_jobs=num_cores)(
             delayed(process_strategy)(row) for _, row in strat_list.iterrows()
         )

@@ -31,11 +31,11 @@ pd.set_option('display.width', 1000)
 COMMISSION = 0.0005
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '10m'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
 
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc10m_Nov2024'
 
 strategy_classes = {
     'MovingAverage': MovingAverage,
@@ -45,7 +45,7 @@ strategy_classes = {
     'Percentile': Percentile,
     'MinMax': MinMax,
     'Robust': Robust,
-    'Divergence': Divergence  # Add this line
+    'Divergence': Divergence
 }
 
 
@@ -83,7 +83,7 @@ def read_glassnode_csv(file_path):
     df.columns = ['Date', 'Value']
     df['Date'] = pd.to_datetime(df['Date'])
     df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
-    df['Value'] = df['Value'].shift(2)  # Add this line to shift the data
+    df['Value'] = df['Value'].shift(1)  # Add this line to shift the data
     df = df.dropna()
     return df
 
@@ -218,11 +218,11 @@ def run_optimization(batch_size=100, start_index=0):
                 return None
 
         # Reduce number of parallel jobs and add memory limit
-        num_cores = multiprocessing.cpu_count() - 2
+        num_cores = multiprocessing.cpu_count() - 4
         logger.info(f"Using {num_cores} cores for parallel processing")
 
         # Process in smaller chunks to manage memory
-        chunk_size = 100
+        chunk_size = 20
         results_list = []
 
         for i in range(0, len(running_list), chunk_size):

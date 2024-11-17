@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Constants
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '10m'
 FOLDER_NAME = 'glassnode_data_btc1h_Nov2024'
 
 
