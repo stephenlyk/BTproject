@@ -46,7 +46,7 @@ ASSET = 'ETH'
 INTERVAL = '1h'
 WINDOW_SIZE_PERCENT = 0.10
 NUM_WINDOW_SIZES = 40
-FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_Dec2024_single'
+FACTOR_DIRECTORY = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/Dec_Database'
 SHIFT = 2
 
 # Resource Management Configuration
