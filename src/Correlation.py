@@ -4,23 +4,28 @@ import requests
 from datetime import datetime
 from strategy.strategy import Strategy
 from strategy.robust import Robust
+from strategy.rsi import RSI
 from strategy.min_max import MinMax
 from strategy.z_score import ZScore
 from strategy.moving_average import MovingAverage
 from strategy.roc import ROC
 from strategy.percentile import Percentile
 from strategy.divergence import Divergence
+from strategy.LogTransform import LogTransform
+from strategy.ModifiedZscore import ModifiedZScore
+from strategy.DecimalScaling import DecimalScaling
 from joblib import Parallel, delayed
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-BASE_PATH = '/Users/stephenlyk/Deskto p/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
-shortlist_path = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/13Nov2024/all_strategies_results_test.csv'
+BASE_PATH = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc10m_Dec2024'
+shortlist_path = '/Users/stephenlyk/Desktop/Strategy Bank/BTC10m/2Dec2024/all_strategies_results_6.csv'
 ASSET = 'BTC'
-INTERVAL = '1h'
+INTERVAL = '10m'
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'  # Replace with your actual API key
+SHIFT = 5
 
 # Function to determine multiplier based on INTERVAL
 def get_multiplier(interval):
@@ -63,7 +68,11 @@ def get_strategy_class(strategy_name):
         'MovingAverage': MovingAverage,
         'ROC': ROC,
         'Percentile': Percentile,
-        'Divergence': Divergence
+        'Divergence': Divergence,
+        'RSI': RSI,
+        'LogTransform': LogTransform,
+        'ModifiedZScore': ModifiedZScore,
+        'DecimalScaling': DecimalScaling,
     }
     return strategy_map.get(strategy_name, Strategy)
 
@@ -86,7 +95,7 @@ def process_metric(row, btc_price_df):
         metric_df.columns = ['Date', 'Value']
         metric_df['Date'] = pd.to_datetime(metric_df['Date'])
         metric_df.set_index('Date', inplace=True)
-        metric_df['Value'] = metric_df['Value'].shift(2)
+        metric_df['Value'] = metric_df['Value'].shift(SHIFT)
         metric_df = metric_df.dropna()
 
         merged_df = metric_df.join(btc_price_df, how='inner')

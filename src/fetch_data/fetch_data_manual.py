@@ -5,6 +5,8 @@ import logging
 import pandas as pd
 import requests
 from tqdm import tqdm
+from multiprocessing import Pool, cpu_count
+from functools import partial
 
 # At the top of your script, add these constants:
 CURRENCIES = ['NATIVE', 'USD']
@@ -18,9 +20,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Constants
 GLASSNODE_API_KEY = '2ixuRhqosLHPpClDohgjZJsEEyp'
 ASSET = 'BTC'
-INTERVAL = '10m'
+INTERVAL = '24h'
 BASE_URL = 'https://api.glassnode.com/v1/metrics'
-FOLDER_NAME = 'glassnode_data_btc24h_Nov2024_manual'
+FOLDER_NAME = 'glassnode_data_btc24h_Dec2024'
 
 # Define the endpoints and their respective metrics with additional parameters
 ENDPOINTS = {
@@ -290,6 +292,59 @@ def fetch_miner_list(metric):
         return None
 
 
+def process_metric(endpoint_metric_tuple, start_timestamp, end_timestamp, data_folder):
+    """Process a single metric with all its parameter combinations"""
+    endpoint, metric_info = endpoint_metric_tuple
+    metric = metric_info['metric']
+    params = metric_info['params']
+
+    try:
+        base_params = {
+            'a': ASSET,
+            's': start_timestamp,
+            'u': end_timestamp,
+            'i': INTERVAL,
+            'api_key': GLASSNODE_API_KEY,
+        }
+
+        param_combinations = [{}]
+        if 'c' in params:
+            param_combinations = [{'c': curr} for curr in CURRENCIES]
+        if 'e' in params:
+            param_combinations = [dict(p, e=exch) for p in param_combinations for exch in EXCHANGES]
+        if 'm' in params:
+            miners = fetch_miner_list(metric)
+            if miners:
+                param_combinations = [dict(p, m=miner) for p in param_combinations for miner in miners]
+
+        for param_combo in param_combinations:
+            request_params = {**base_params, **param_combo}
+            data = fetch_glassnode_data(endpoint, metric, start_timestamp, end_timestamp, request_params)
+
+            if data:
+                df = pd.DataFrame(data)
+                if 't' in df.columns and 'v' in df.columns:
+                    df['Date'] = pd.to_datetime(df['t'], unit='s')
+                    df = df.rename(columns={'v': metric})
+                    df = df[['Date', metric]].set_index('Date').sort_index()
+
+                    filename_parts = [endpoint, metric, ASSET]
+                    for key, value in param_combo.items():
+                        filename_parts.append(f"{key}_{value}")
+
+                    csv_filename = os.path.join(data_folder, "_".join(filename_parts) + ".csv")
+
+                    df.to_csv(csv_filename)
+                    logging.info(f"Saved data for {endpoint}/{metric} to {csv_filename}")
+                else:
+                    logging.warning(f"Unexpected data format for {endpoint}/{metric}. Skipping.")
+            else:
+                logging.warning(f"No data available for {endpoint}/{metric} ({request_params})")
+
+    except Exception as e:
+        logging.error(f"Error processing {endpoint}/{metric}: {str(e)}")
+
+
 def fetch_and_save_data(start_date, end_date):
     start_timestamp = int(datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc).timestamp())
     end_timestamp = int(end_date.timestamp())
@@ -297,55 +352,43 @@ def fetch_and_save_data(start_date, end_date):
     data_folder = FOLDER_NAME
     os.makedirs(data_folder, exist_ok=True)
 
-    for endpoint, metrics in tqdm(ENDPOINTS.items(), desc="Fetching endpoints"):
-        for metric_info in tqdm(metrics, desc=f"Fetching metrics for {endpoint}", leave=False):
-            metric = metric_info['metric']
-            params = metric_info['params']
+    # Create a list of all endpoint-metric combinations
+    all_metrics = []
+    for endpoint, metrics in ENDPOINTS.items():
+        for metric_info in metrics:
+            all_metrics.append((endpoint, metric_info))
 
-            base_params = {
-                'a': ASSET,
-                's': start_timestamp,
-                'u': end_timestamp,
-                'i': INTERVAL,
-                'api_key': GLASSNODE_API_KEY,
-            }
+    # Initialize the process pool with the number of CPU cores minus 1
+    num_processes = max(1, cpu_count() - 1)
 
-            param_combinations = [{}]
-            if 'c' in params:
-                param_combinations = [{'c': curr} for curr in CURRENCIES]
-            if 'e' in params:
-                param_combinations = [dict(p, e=exch) for p in param_combinations for exch in EXCHANGES]
-            if 'm' in params:
-                miners = fetch_miner_list(metric)
-                if miners:
-                    param_combinations = [dict(p, m=miner) for p in param_combinations for miner in miners]
+    # Create a partial function with fixed parameters
+    process_metric_partial = partial(
+        process_metric,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
+        data_folder=data_folder
+    )
 
-            for param_combo in param_combinations:
-                request_params = {**base_params, **param_combo}
+    # Process metrics in parallel with progress bar
+    with Pool(processes=num_processes) as pool:
+        list(tqdm(
+            pool.imap(process_metric_partial, all_metrics),
+            total=len(all_metrics),
+            desc="Processing metrics"
+        ))
 
-                data = fetch_glassnode_data(endpoint, metric, start_timestamp, end_timestamp, request_params)
-
-                if data:
-                    df = pd.DataFrame(data)
-                    if 't' in df.columns and 'v' in df.columns:
-                        df['Date'] = pd.to_datetime(df['t'], unit='s')
-                        df = df.rename(columns={'v': metric})
-                        df = df[['Date', metric]].set_index('Date').sort_index()
-
-                        filename_parts = [endpoint, metric, ASSET]
-                        for key, value in param_combo.items():
-                            filename_parts.append(f"{key}_{value}")
-
-                        csv_filename = os.path.join(data_folder, "_".join(filename_parts) + ".csv")
-
-                        df.to_csv(csv_filename)
-                        logging.info(f"Saved data for {endpoint}/{metric} to {csv_filename}")
-                    else:
-                        logging.warning(f"Unexpected data format for {endpoint}/{metric}. Skipping.")
-                else:
-                    logging.warning(f"No data available for {endpoint}/{metric} ({request_params})")
 
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(f'glassnode_fetch_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
+            logging.StreamHandler()
+        ]
+    )
+
     start_date = datetime(2020, 1, 1, tzinfo=timezone.utc).date()
     end_date = datetime.now(timezone.utc)
     fetch_and_save_data(start_date, end_date)

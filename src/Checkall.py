@@ -7,23 +7,28 @@ from Check import run_single_strategy
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-BASE_PATH = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc1h_Nov2024'
-STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/BTC1H/13Nov2024/Book_combined.csv'
+BASE_PATH = '/Users/stephenlyk/Desktop/Gnproject/src/fetch_data/glassnode_data_btc24h_Dec2024'
+STRATEGY_PATH = '/Users/stephenlyk/Desktop/Strategy Bank/ETH/ETH24H/Book28.csv'
 
 
 def process_strategy(row):
     try:
-        file_path = os.path.join(BASE_PATH, row['Metric'])
+        # Extract just the filename from the full path
+        filename = os.path.basename(row['Metric'])
+        file_path = os.path.join(BASE_PATH, filename)
+        print(f"Full file path being accessed: {file_path}")
+        print(f"Original path from CSV: {row['Metric']}")
+        print(f"File exists: {os.path.exists(file_path)}")
+
         strategy_name = row['Strategy']
         long_short = row['Strategy Type']
         condition = row['Condition']
 
         logging.info(f"Processing strategy: {strategy_name}, {long_short}, {condition} with file: {file_path}")
 
-        # Check if the strategy is available
-        available_strategies = ['ZScore', 'MovingAverage', 'RSI', 'ROC', 'MinMax', 'Robust', 'Percentile', 'Divergence']
-        if strategy_name not in available_strategies:
-            logging.warning(f"Strategy {strategy_name} not found in available strategies. Skipping.")
+        # Check if file exists before proceeding
+        if not os.path.exists(file_path):
+            logging.error(f"File not found: {file_path}")
             return None
 
         # Run the strategy

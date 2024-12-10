@@ -11,19 +11,26 @@ from strategy.moving_average import MovingAverage
 from strategy.percentile import Percentile
 from strategy.rsi import RSI
 from strategy.divergence import Divergence
+from strategy.LogTransform import LogTransform
+from strategy.ModifiedZscore import ModifiedZScore
+from strategy.DecimalScaling import DecimalScaling
+from strategy.LogTransform import LogTransform
+from strategy.ModifiedZscore import ModifiedZScore
+from strategy.DecimalScaling import DecimalScaling
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 from config import GLASSNODE_API_KEY
 
 # Standard User Input Section
-COMMISSION = 0.0005  # 7 basis points, change as needed
+COMMISSION = 0.0005
 WINDOW_SIZE_PERCENT = 0.1  # 10%
 NUM_WINDOW_SIZES = 40
 TRAIN_RATIO = 0.7  # 70%
 GLASSNODE_API_KEY = GLASSNODE_API_KEY
-ASSET = 'BTC'
-INTERVAL = '1h'
+ASSET = 'ETH'
+INTERVAL = '24h'
+SHIFT = 1
 
 # File and Strategy
 FILE_PATH = "/Users/stephenlyk/Desktop/Strategy Bank/ETH/17Aug2024/book3.csv"
@@ -35,12 +42,19 @@ CONDITION = "lower"
 STRATEGY_PARAMS = {
     'ZScore': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)},
     'MovingAverage': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
-    'RSI': {'threshold_list': np.round(np.linspace(0.2, 0.8, 32), 3)},
+    'RSI': {'threshold_list': np.round(np.linspace(0.2, 0.8, 10), 3)},
     'ROC': {'threshold_list': np.round(np.linspace(-0.1, 0.1, 20), 3)},
     'MinMax': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
     'Robust': {'threshold_list': np.round(np.linspace(0, 2, 20), 3)},
     'Percentile': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
-    'Divergence': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)}  # Add this line
+    'Divergence': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)},
+    'LogTransform': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)},
+    'ModifiedZScore': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3)},
+    'DecimalScaling': {'threshold_list': np.round(np.linspace(0.1, 0.9, 20), 3)},
+    'AdaptiveNorm': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3),},
+    'MomentumNorm': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3),},
+    'RangeVolNorm': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3),},
+    'EntropyNorm': {'threshold_list': np.round(np.linspace(-3, 3, 20), 3),},
 }
 
 class StrategyChecker:
@@ -90,7 +104,7 @@ class StrategyChecker:
         df = pd.read_csv(self.file_path)
         df.columns = ['Date', 'Value']
         df['Date'] = pd.to_datetime(df['Date'])
-        df['Value'] = df['Value'].shift(2)
+        df['Value'] = df['Value'].shift(SHIFT)
         merged_df = pd.merge(self.btc_price_df, df, on='Date', how='inner')
         merged_df = merged_df.sort_values('Date').dropna()
         return merged_df
@@ -135,7 +149,10 @@ class StrategyChecker:
             'MovingAverage': 'MA_Score',
             'Percentile': 'Percentile_Score',
             'RSI': 'RSI_Score',
-            'Divergence': 'Divergence'  # Add this line
+            'Divergence': 'Divergence',
+            'LogTransform': 'LogTransform',
+            'ModifiedZScore': 'ModifiedZScore',
+            'DecimalScaling': 'DecimalScaling',
         }
 
         score_column = strategy_score_columns.get(self.strategy_name)
